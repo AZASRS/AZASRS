@@ -87,11 +87,11 @@ calc_grouped_irrs(pm_fund_portfolio, pm_fund_category_description, pm_fund_id,
 
 # Trailing IRR's can be calculated similarly  
 
-### 1 Year trailing - starting 2015-12-31
+### 1 Year trailing - starting 2017-12-31
 
 ```{r}
 build_grouped_irrs(pm_fund_portfolio,
-                   start_date = '2015-12-31',
+                   start_date = '2017-12-31',
                    end_date = '2019-06-30',
                    n_qtrs = 4)  %>% # 4 = 1 year, 12 = 3 years, and so forth
   tbl_out()
@@ -101,7 +101,7 @@ build_grouped_irrs(pm_fund_portfolio,
 #### Quarterly trailing
 ```{r}
 build_grouped_irrs(pm_fund_portfolio, pm_fund_category_description,
-                   start_date = '2015-12-31',
+                   start_date = '2017-12-31',
                    end_date = '2019-06-30',
                    n_qtrs = 1)  %>% # 4 = 1 year, 12 = 3 years, and so forth
   tbl_out()
