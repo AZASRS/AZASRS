@@ -1,5 +1,5 @@
 #' Get and combine cash flows and nav according to irr.z calc
-#' a = build_grouped_irrs(pm_fund_portfolio, pm_fund_category_description, pm_fund_id, itd=TRUE)
+#'
 #' @export
 build_nav_cash_flow_combined = function(...,
                                         con = AZASRS_DATABASE_CONNECTION(),
