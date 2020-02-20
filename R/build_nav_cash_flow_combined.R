@@ -1,5 +1,5 @@
 #' Get and combine cash flows and nav according to irr.z calc
-#'
+#' a = build_grouped_irrs(pm_fund_portfolio, pm_fund_category_description, pm_fund_id, itd=TRUE)
 #' @export
 build_nav_cash_flow_combined = function(...,
                                         con = AZASRS_DATABASE_CONNECTION(),
@@ -11,7 +11,7 @@ build_nav_cash_flow_combined = function(...,
                                         return_tibble = FALSE){
 
   # Start date well before any potential start
-  if(itd){ start_date = '1900-12-31'}
+  if(itd){ start_date = '1899-12-31'}
   pmfi = get_pm_fund_info(con = con, return_tibble = FALSE)
 
   # Create dummy NAVs for start and end
@@ -51,9 +51,14 @@ build_nav_cash_flow_combined = function(...,
     dplyr::rename(adj_cf = nav)
 
   # Get all fund CASH FLOW raw, will filter in next step
+  if(!itd){
+    cash_flow_daily = cash_flow_daily %>%
+      dplyr::group_by(pm_fund_id) %>%
+      dplyr::filter(min(effective_date, na.rm = TRUE) <= start_date) %>%
+      dplyr::ungroup()
+  }
   cash_flow = cash_flow_daily %>%
     dplyr::group_by(pm_fund_id) %>%
-    dplyr::filter(min(effective_date, na.rm = TRUE) <= start_date) %>%
     dplyr::ungroup() %>%
     dplyr::filter(cash_flow != 0,
                   effective_date < end_date,
