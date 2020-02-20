@@ -35,6 +35,7 @@ build_pe_stats = function(con = AZASRS_DATABASE_CONNECTION(),
       nav_cf = sum(nav_cf),
       contributions_fv = sum(contributions * index_factor),
       distributions_fv = sum(distributions * index_factor),
+      dva = sum((contributions + distributions) * index_factor),
       contributions = sum(contributions),
       distributions = sum(distributions)) %>%
     dplyr::ungroup() %>%
@@ -44,9 +45,10 @@ build_pe_stats = function(con = AZASRS_DATABASE_CONNECTION(),
       irr = calc_irr(cash_flow = nav_cf, dates = effective_date),
       irr_fv = calc_irr(cash_flow = nav_cf_fv, dates = effective_date),
       tvpi = -sum(distributions) / sum(contributions),
+      dva = sum(dva),
       alpha = log(1 + irr_fv),
       bench_irr = -1 + exp(log(1 + irr) - alpha)) %>%
-    dplyr::select(pm_fund_portfolio, irr, bench_irr, tvpi, pme) %>%
+    dplyr::select(pm_fund_portfolio, irr, bench_irr, tvpi, pme, dva) %>%
     dplyr::ungroup() %>%
     dplyr::mutate(pm_fund_category_description = 'TOTAL', pm_fund_id = 'TOTAL')
 
@@ -60,6 +62,7 @@ build_pe_stats = function(con = AZASRS_DATABASE_CONNECTION(),
       nav_cf = sum(nav_cf),
       contributions_fv = sum(contributions * index_factor),
       distributions_fv = sum(distributions * index_factor),
+      dva = sum((contributions + distributions) * index_factor),
       contributions = sum(contributions),
       distributions = sum(distributions)) %>%
     dplyr::ungroup() %>%
@@ -69,9 +72,10 @@ build_pe_stats = function(con = AZASRS_DATABASE_CONNECTION(),
       irr = calc_irr(cash_flow = nav_cf, dates = effective_date),
       irr_fv = calc_irr(cash_flow = nav_cf_fv, dates = effective_date),
       tvpi = -sum(distributions) / sum(contributions),
+      dva = sum(dva),
       alpha = log(1 + irr_fv),
       bench_irr = -1 + exp(log(1 + irr) - alpha)) %>%
-    dplyr::select(pm_fund_portfolio, pm_fund_category_description, irr, bench_irr, tvpi, pme) %>%
+    dplyr::select(pm_fund_portfolio, pm_fund_category_description, irr, bench_irr, tvpi, pme, dva) %>%
     dplyr::ungroup() %>%
     dplyr::mutate(pm_fund_id = 'TOTAL')
 
@@ -85,11 +89,12 @@ build_pe_stats = function(con = AZASRS_DATABASE_CONNECTION(),
       irr = calc_irr(cash_flow = nav_cf, dates = effective_date),
       irr_fv = calc_irr(cash_flow = nav_cf*index_factor, dates = effective_date),
       tvpi = -sum(distributions) / sum(contributions),
+      dva = sum((contributions + distributions) * index_factor),
       pme = -sum(distributions*index_factor) / sum(contributions*index_factor),
       alpha = log(1 + irr_fv),
       bench_irr = -1 + exp(log(1 + irr) - alpha)
     )  %>%
-    dplyr::select(pm_fund_portfolio, pm_fund_category_description, pm_fund_id, irr, bench_irr, tvpi, pme) %>%
+    dplyr::select(pm_fund_portfolio, pm_fund_category_description, pm_fund_id, irr, bench_irr, tvpi, pme, dva) %>%
     dplyr::ungroup()
 
 
