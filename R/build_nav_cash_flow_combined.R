@@ -10,6 +10,25 @@ build_nav_cash_flow_combined = function(...,
                                         itd = FALSE,
                                         return_tibble = FALSE){
 
+  # # Start date well before any potential start
+  # if(itd){ start_date = '1900-12-31'}
+  #
+  # # Get all fund NAV to filter
+  # nav = nav_daily %>%
+  #   dplyr::filter(nav != 0,
+  #                 effective_date <= end_date,
+  #                 effective_date >= start_date) %>%
+  #   dplyr::group_by(pm_fund_id) %>%
+  #   dplyr::filter(effective_date == start_date | effective_date == end_date) %>% # No NAV possible for ITD
+  #   dplyr::mutate(max_date = max(effective_date, na.rm = TRUE),
+  #                 min_date = min(effective_date, na.rm = TRUE)) %>% # Max / Min possible PER FUND
+  #   dplyr::ungroup() %>%
+  #   dplyr::mutate(nav = dplyr::if_else(effective_date == min_date, -1*nav, nav)) # Utilizes NAV as a "cash flow" for calculation
+  #
+  #
+  #
+
+
   if(itd){
     # ITD only at value date
 
