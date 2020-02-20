@@ -10,104 +10,77 @@ build_nav_cash_flow_combined = function(...,
                                         itd = FALSE,
                                         return_tibble = FALSE){
 
-  # # Start date well before any potential start
-  # if(itd){ start_date = '1900-12-31'}
-  #
-  # # Get all fund NAV to filter
-  # nav = nav_daily %>%
-  #   dplyr::filter(nav != 0,
-  #                 effective_date <= end_date,
-  #                 effective_date >= start_date) %>%
-  #   dplyr::group_by(pm_fund_id) %>%
-  #   dplyr::filter(effective_date == start_date | effective_date == end_date) %>% # No NAV possible for ITD
-  #   dplyr::mutate(max_date = max(effective_date, na.rm = TRUE),
-  #                 min_date = min(effective_date, na.rm = TRUE)) %>% # Max / Min possible PER FUND
-  #   dplyr::ungroup() %>%
-  #   dplyr::mutate(nav = dplyr::if_else(effective_date == min_date, -1*nav, nav)) # Utilizes NAV as a "cash flow" for calculation
-  #
-  #
-  #
+  # Start date well before any potential start
+  if(itd){ start_date = '1900-12-31'}
+  pmfi = get_pm_fund_info(con = con, return_tibble = FALSE)
 
+  # Create dummy NAVs for start and end
+  nav_start_dummy = nav_daily %>%
+    dplyr::select(pm_fund_id, effective_date, nav) %>%
+    dplyr::mutate(nav = 0, effective_date = start_date) %>%
+    dplyr::group_by(pm_fund_id, effective_date) %>%
+    dplyr::summarize(nav = sum(nav, na.rm = TRUE)) %>%
+    dplyr::ungroup()
 
-  if(itd){
-    # ITD only at value date
+  nav_end_dummy = nav_daily %>%
+    dplyr::select(pm_fund_id, effective_date, nav) %>%
+    dplyr::mutate(nav = 0, effective_date = end_date) %>%
+    dplyr::group_by(pm_fund_id, effective_date) %>%
+    dplyr::summarize(nav = sum(nav, na.rm = TRUE)) %>%
+    dplyr::ungroup()
 
-    #beg of life cash flows up until either cash flows stop or nav
-    nav = nav_daily %>%
-      dplyr::group_by(...) %>%
-      dplyr::filter(nav != 0,
-                    effective_date == end_date) %>%
-      dplyr::ungroup() %>%
-      dplyr::group_by(..., effective_date) %>%
-      dplyr::summarize(nav = sum(nav, na.rm = TRUE)) %>%
-      dplyr::ungroup()
+  # Get all fund NAV to filter start
+  nav_start = nav_daily %>%
+    dplyr::filter(nav != 0) %>% # filter to avoid end nav of 0
+    dplyr::filter(effective_date == start_date) %>%
+    dplyr::mutate(nav = -1*nav) %>% # converts to first "cash flow" for calculations
+    dplyr::select(pm_fund_id, effective_date, nav)
 
-    cf = cash_flow_daily %>%
-      dplyr::filter(effective_date < end_date) %>%
-      dplyr::group_by(..., effective_date) %>%
-      dplyr::summarize(cash_flow = sum(cash_flow, na.rm = TRUE)) %>%
-      dplyr::ungroup()
+  nav_end = nav_daily %>%
+    dplyr::filter(nav != 0) %>% # filter to avoid end nav of 0
+    dplyr::filter(effective_date == end_date) %>%
+    dplyr::select(pm_fund_id, effective_date, nav)
 
-    # Prep for union
-    nav = nav %>%
-      dplyr::mutate(cash_flow = 0)
-    cf = cf %>%
-      dplyr::mutate(nav = 0)
+  # Dataframe that has nav of 0 or -nav at start_date & nav or 0 at end_date
+  nav = dplyr::union_all(nav_start, nav_end) %>%
+    dplyr::union_all(nav_start_dummy) %>%
+    dplyr::union_all(nav_end_dummy) %>%
+    dplyr::group_by(pm_fund_id, effective_date) %>%
+    dplyr::summarize(nav = sum(nav, na.rm = TRUE)) %>%
+    dplyr::ungroup() %>%
+    dplyr::rename(adj_cf = nav)
 
-    nav_cf_combo = dplyr::union_all(nav, cf)
+  # Get all fund CASH FLOW raw, will filter in next step
+  cash_flow = cash_flow_daily %>%
+    dplyr::group_by(pm_fund_id) %>%
+    dplyr::filter(min(effective_date, na.rm = TRUE) <= start_date) %>%
+    dplyr::ungroup() %>%
+    dplyr::filter(cash_flow != 0,
+                  effective_date < end_date,
+                  effective_date >= start_date) %>%
+    dplyr::mutate(adj_cf = cash_flow) %>%
+    dplyr::select(pm_fund_id, effective_date, adj_cf)
 
-  } else{
-
-    # Remove funds who either start in the middle of the date range or do not reach the end
-    nav_in_range = nav_daily %>%
-      dplyr::group_by(...) %>%
-      dplyr::mutate(nav_start = min(effective_date, na.rm = TRUE),
-             nav_end = max(effective_date, na.rm = TRUE)) %>%
-      dplyr::filter(nav_start <= start_date) %>%
-      dplyr::filter(nav_end >= end_date) %>%
-      dplyr::ungroup()
-
-    nav = nav_in_range %>%
-      dplyr::filter(effective_date == start_date | effective_date == end_date) %>%
-      dplyr::group_by(..., effective_date) %>%
-      dplyr::summarize(nav = sum(nav, na.rm = TRUE)) %>%
-      dplyr::mutate(nav = dplyr::if_else(effective_date == start_date, -1*nav, nav)) %>%
-      dplyr::ungroup()
-
-    cf_date_filter = nav %>%
-      dplyr::group_by(...) %>%
-      dplyr::summarize(min_date = min(effective_date, na.rm = TRUE),
-                       max_date = max(effective_date, na.rm = TRUE)) %>%
-      dplyr::ungroup()
-
-    cf = cash_flow_daily %>%
-      dplyr::left_join(cf_date_filter) %>%
-      dplyr::filter(effective_date >= min_date, effective_date < max_date) %>%
-      dplyr::group_by(..., effective_date) %>%
-      dplyr::summarize(cash_flow = sum(cash_flow, na.rm = TRUE)) %>%
-      dplyr::ungroup()
-
-    # Prep for union
-    nav = nav %>%
-      dplyr::mutate(cash_flow = 0)
-    cf = cf %>%
-      dplyr::mutate(nav = 0)
-
-    nav_cf_combo = dplyr::union_all(nav, cf)
-  }
+  # Concatenate and summarize
+  nav_cf_combo = dplyr::union_all(nav, cash_flow) %>%
+    dplyr::group_by(pm_fund_id, effective_date) %>%
+    dplyr::summarise(adj_cf = sum(adj_cf)) %>%
+    dplyr::ungroup() %>%
+    dplyr::left_join(pmfi, by = 'pm_fund_id')
 
   dat = nav_cf_combo %>%
+    dplyr::filter(effective_date > '1901-01-01') %>%
+    dplyr::filter(adj_cf != 0) %>%
     dplyr::group_by(..., effective_date) %>%
-    dplyr::summarize(nav_cf = sum(nav, na.rm = TRUE) + sum(cash_flow, na.rm = TRUE)) %>%
     dplyr::arrange(..., effective_date) %>%
     dplyr::ungroup() %>%
-    dplyr::mutate(distributions = dplyr::if_else(nav_cf > 0, nav_cf, 0),
-           contributions = dplyr::if_else(nav_cf < 0, nav_cf, 0)) %>%
-    dplyr::group_by(...) %>%
-    dplyr::mutate(nav = if_else(effective_date == min(effective_date, na.rm = TRUE) | effective_date == max(effective_date, na.rm = TRUE), nav_cf, 0)) %>%
+    dplyr::mutate(distributions = dplyr::if_else(adj_cf > 0, adj_cf, 0),
+           contributions = dplyr::if_else(adj_cf < 0, adj_cf, 0)) %>%
+    dplyr::group_by(pm_fund_id) %>%
+    dplyr::mutate(nav = if_else(effective_date == min(effective_date, na.rm = TRUE) | effective_date == max(effective_date, na.rm = TRUE), adj_cf, 0)) %>%
     dplyr::ungroup() %>%
     dplyr::group_by(..., effective_date) %>%
-    dplyr::summarize(nav_cf = sum(nav_cf, na.rm = TRUE),
+    dplyr::summarize(nav_cf = sum(adj_cf, na.rm = TRUE),
                      distributions = sum(distributions, na.rm = TRUE),
                      contributions = sum(contributions, na.rm = TRUE),
                      nav = sum(nav, na.rm = TRUE)) %>%
