@@ -19,7 +19,7 @@ con = AZASRS_DATABASE_CONNECTION()
 cash_adjusted = FALSE
 nav_daily = get_pm_nav_daily(con = con)
 cf_daily = get_pm_cash_flow_daily(con = con)
-bench_daily_index = get_benchmark_daily_index(con = con, benchmark_type = "PVT", return_tibble = TRUE)
+bench_daily = get_benchmark_daily_index(con = con, benchmark_type = "PVT", return_tibble = TRUE)
 bench_relationships = get_benchmark_fund_relationship(con = con, bench_type = "PVT", return_tibble = TRUE)
 pm_fund_info = get_pm_fund_info(con = con)
 ```
@@ -33,7 +33,7 @@ Now that your data has been stored in memory, you may quickly calculate your met
 ```{r}
 start_date = "2016-12-31"
 end_date = "2020-03-31"
-itd = TRUE
+itd = TRUE  # This will make start_date irrelevant
 
 data = build_grouped_pm_metrics(pm_fund_portfolio,
                                 con = con,
@@ -43,11 +43,12 @@ data = build_grouped_pm_metrics(pm_fund_portfolio,
                                 cash_adjusted = cash_adjusted,
                                 nav_daily = nav_daily,
                                 cf_daily = cf_daily,
-                                bench_daily_index = bench_daily_index,
+                                bench_daily = bench_daily,
                                 bench_relationships = bench_relationships,
                                 pm_fund_info = pm_fund_info)
 
 data
+
 ```
 
 
@@ -56,8 +57,8 @@ data
 You'll see that with `itd = FALSE` certain metrics will not come through. This is by design. You'll notice that the last column, `period` shows the number of years.
 
 ```{r}
-start_date = "2016-06-30"
-end_date = "2019-06-30"
+start_date = "2015-03-31"
+end_date = "2020-03-31"
 itd = FALSE
 
 data = build_grouped_pm_metrics(pm_fund_portfolio,
@@ -68,7 +69,7 @@ data = build_grouped_pm_metrics(pm_fund_portfolio,
                                 cash_adjusted = cash_adjusted,
                                 nav_daily = nav_daily,
                                 cf_daily = cf_daily,
-                                bench_daily_index = bench_daily_index,
+                                bench_daily = bench_daily,
                                 bench_relationships = bench_relationships,
                                 pm_fund_info = pm_fund_info)
 
