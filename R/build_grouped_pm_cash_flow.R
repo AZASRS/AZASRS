@@ -36,18 +36,28 @@ build_grouped_pm_cash_flow <- function(...,
   nav_daily <- nav_daily %>% dplyr::filter(nav != 0)
   cf_daily <- cf_daily %>% dplyr::filter(cash_flow != 0)
 
-  nav_prep <- nav_daily %>%
-    filter_nav_on_dates(start_date = start_date, end_date = end_date, itd = itd) %>%
-    append_nav_has_reported(end_date = end_date) %>%
-    convert_start_date_nav_to_negative(start_date = start_date)
+  bench_daily = bench_daily %>%
+    dplyr::filter(effective_date >= start_date, effective_date <= end_date) %>%
+    dplyr::distinct(benchmark_info_id, effective_date, .keep_all = TRUE) %>%
+    dplyr::group_by(benchmark_info_id) %>%
+    dplyr::arrange(effective_date) %>%
+    dplyr::mutate(index_fv = dplyr::last(index_value) / index_value) %>%
+    dplyr::ungroup() %>%
+    dplyr::arrange(benchmark_info_id, effective_date)
 
   cf_prep <- cf_daily %>%
-    filter_cf_between_dates(start_date = start_date, end_date = end_date, itd = itd)
+    dplyr::filter(
+      effective_date >= start_date,
+      effective_date <= end_date
+    ) %>%
+    dplyr::mutate(nav = 0)
 
-  nav_cf <- merge_nav_and_cf(nav_prep, cf_prep, end_date = end_date, cash_adjusted = cash_adjusted, pm_fund_info = pm_fund_info) %>%
-    # filter_dates(start_date = start_date, end_date = end_date, itd = itd, ...) %>%
-    clean_nav_cf(pm_fund_info = pm_fund_info) %>%
-    dplyr::mutate(nav = dplyr::if_else(effective_date == start_date, -1 * nav, nav))
+  nav_prep <- nav_daily %>%
+    dplyr::filter(effective_date == start_date | effective_date == end_date) %>%
+    dplyr::mutate(cash_flow = 0)
+
+  # Combine NAV and CF
+  nav_cf <- dplyr::bind_rows(nav_prep, cf_prep)
 
   # Filter out funds that are not active for the full start - end period.
   # Not applicable to aggregated funds, would filter out important data
@@ -61,10 +71,49 @@ build_grouped_pm_cash_flow <- function(...,
     }
   }
 
+
+  # Aggregate by fund & date, convert first NAV values to negative
+  nav_cf_prep <- nav_cf %>%
+    dplyr::group_by(pm_fund_info_id) %>%
+    dplyr::mutate(
+      adjusted_cash_flow = 0,
+      adjusted_cash_flow = dplyr::if_else(effective_date == start_date, -1 * nav, nav),
+      adjusted_cash_flow = adjusted_cash_flow + cash_flow
+    ) %>%
+    dplyr::group_by(pm_fund_info_id, effective_date) %>%
+    dplyr::summarize(
+      adjusted_cash_flow = sum(adjusted_cash_flow),
+      nav = sum(nav),
+      cash_flow = sum(cash_flow)
+    ) %>%
+    dplyr::ungroup()
+
+  #%>%
+    #append_nav_has_reported(end_date = end_date) %>%
+    #convert_start_date_nav_to_negative(start_date = start_date)
+
+  #nav_cf <- merge_nav_and_cf(nav_prep, cf_prep, end_date = end_date, cash_adjusted = cash_adjusted, pm_fund_info = pm_fund_info) %>%
+    # filter_dates(start_date = start_date, end_date = end_date, itd = itd, ...) %>%
+    #clean_nav_cf(pm_fund_info = pm_fund_info) %>%
+    #dplyr::mutate(nav = dplyr::if_else(effective_date == start_date, -1 * nav, nav))
+
+  # Filter out funds that are not active for the full start - end period.
+  # Not applicable to aggregated funds, would filter out important data
+  # if (IS_NOT_AGGREGATED) {
+  #   if (!itd) {
+  #     nav_cf <- nav_cf %>%
+  #       dplyr::group_by(pm_fund_info_id) %>%
+  #       dplyr::filter(min(effective_date) <= start_date) %>%
+  #       dplyr::filter(max(effective_date) >= end_date) %>%
+  #       dplyr::ungroup()
+  #   }
+  # }
+
   # Join benchmark info and adjust calculations before grouping
-  joined_data <- nav_cf %>%
+  joined_data <- nav_cf_prep %>%
     dplyr::left_join(bench_relationships, by = "pm_fund_info_id") %>%
-    dplyr::left_join(bench_daily, by = c("benchmark_info_id", "effective_date"))
+    dplyr::left_join(bench_daily, by = c("benchmark_info_id", "effective_date")) %>%
+    dplyr::left_join(pm_fund_info, by = 'pm_fund_info_id')
 
   calculated_data <- joined_data %>%
     dplyr::mutate(

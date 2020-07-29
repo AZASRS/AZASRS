@@ -8,7 +8,7 @@
 #' @param cash_adjusted is a boolean that determines if NAV is cash adjusted
 #' @param nav_daily is the object of get_pm_nav_daily()
 #' @param cf_daily is the object of get_pm_cash_flow_daily()
-#' @param bench_daily_index is the object of get_benchmark_daily_index()
+#' @param bench_daily is the object of get_benchmark_daily_index()
 #' @param bench_relationships is the object of get_benchmark_fund_relationship()
 #' @param pm_fund_info is the object of get_pm_fund_info()
 #' @export
@@ -18,21 +18,15 @@ build_grouped_pm_metrics <- function(...,
                                      end_date = get_value_date(con = con),
                                      itd = FALSE,
                                      cash_adjusted = FALSE,
+                                     benchmark_type = "PVT",
                                      nav_daily = get_pm_nav_daily(con = con),
                                      cf_daily = get_pm_cash_flow_daily(con = con),
-                                     bench_daily_index = get_benchmark_daily_index(con = con, benchmark_type = "PVT", return_tibble = TRUE),
-                                     bench_relationships = get_benchmark_fund_relationship(con = con, bench_type = "PVT", return_tibble = TRUE),
+                                     bench_daily = get_benchmark_daily_index(con = con, benchmark_type = benchmark_type, return_tibble = TRUE),
+                                     bench_relationships = get_benchmark_fund_relationship(con = con, bench_type = benchmark_type, return_tibble = TRUE),
                                      pm_fund_info = get_pm_fund_info(con = con)) {
 
-  bench_daily = bench_daily_index %>%
-    dplyr::as_tibble() %>%
-    dplyr::filter(start_date >= start_date, end_date <= end_date) %>%
-    dplyr::distinct(benchmark_info_id, effective_date, .keep_all = TRUE) %>%
-    dplyr::group_by(benchmark_info_id) %>%
-    dplyr::arrange(effective_date) %>%
-    dplyr::mutate(index_fv = dplyr::last(index_value) / index_value) %>%
-    dplyr::ungroup() %>%
-    dplyr::arrange(benchmark_info_id, effective_date)
+  nav_daily = nav_daily %>% dplyr::filter(nav != 0)
+  cf_daily = cf_daily %>% dplyr::filter(cash_flow != 0)
 
   clean_data <- build_grouped_pm_cash_flow(...,
     start_date = start_date,
@@ -47,10 +41,9 @@ build_grouped_pm_metrics <- function(...,
   )
 
 
-
   # Append benchmark data before calculating metrics
   dat <- clean_data %>%
-    calculate_grouped_pm_metrics(...) %>%
+    calc_grouped_pm_metrics(...) %>%
     dplyr::mutate(itd = itd) %>%
     calc_time_delta(start_date, end_date)
 
@@ -69,7 +62,7 @@ build_grouped_pm_metrics <- function(...,
 #' @description Calculates the major financial metrics
 #' @param .data is from build_grouped_pm_cash_flow()
 #' @param ... aggregation choices from from pm_fund_info (i.e. pm_fund_portfolio, pm_fund_category, pm_fund_id)
-calculate_grouped_pm_metrics <- function(.data, ...) {
+calc_grouped_pm_metrics <- function(.data, ...) {
   .data %>%
     dplyr::group_by(...) %>%
     dplyr::arrange(effective_date) %>%
