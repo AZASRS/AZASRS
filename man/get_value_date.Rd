@@ -6,6 +6,12 @@
 \usage{
 get_value_date(con = AZASRS_DATABASE_CONNECTION())
 }
+\arguments{
+\item{con}{object from AZASRS_DATABASE_CONNECTION()}
+}
+\value{
+string of YYYY-mm-dd of value date as set by ASRS
+}
 \description{
 Finds the value date based off of the constants table from most recent database population
 }

@@ -6,13 +6,19 @@
 \usage{
 AZASRS_DATABASE_DISCONNECT(con)
 }
+\arguments{
+\item{con}{object from AZASRS_DATABASE_CONNECTION()}
+}
+\value{
+boolean for DBI disconnected or not
+}
 \description{
 Disconnect from database if using AZASRS_DATABASE_CONNECTION
 }
 \examples{
-con = AZASRS_DATABASE_CONNECTION()
-data = tbl_pm_fund_nav_daily(con) \%>\%
-       left_join(tbl_pm_fund_info(con), by = 'pm_fund_id') \%>\%
-       as_tibble()
+con <- AZASRS_DATABASE_CONNECTION()
+data <- tbl_pm_fund_nav_daily(con) \%>\%
+  left_join(tbl_pm_fund_info(con), by = "pm_fund_id") \%>\%
+  as_tibble()
 AZASRS_DATABASE_DISCONNECT(con)
 }

@@ -10,5 +10,5 @@ INITIAL_DATABASE_POPULATION(development = 0, local_azure_functions = FALSE)
 To be used in the event the database needs a total refresh. Note: the benchmark data will fail to upload the first time simply due to its size, upon running again it will work.
 }
 \examples{
-UPDATE_DATABASE('pm_fund_info.csv')
+UPDATE_DATABASE("pm_fund_info.csv")
 }
