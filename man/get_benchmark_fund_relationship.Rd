@@ -6,15 +6,31 @@
 \usage{
 get_benchmark_fund_relationship(
   con = AZASRS_DATABASE_CONNECTION(),
+  bench_type = "PVT",
+  get_all_benchmark_types = FALSE,
   return_tibble = FALSE
 )
 }
 \arguments{
-\item{con}{is the db connection, default of AZASRS_DATABASE_CONNECTION()}
+\item{con}{is a database connection object from AZASRS::AZASRS_DATABASE_CONNECTION()}
+
+\item{bench_type}{is the type of benchmark. The default is 'PVT' which is private.}
+
+\item{return_tibble}{is a boolean that determines whether or not a tibble is returned instead}
 }
 \value{
-Returns a table of relationships of ALL types, not filtered
+Returns a tibble or database object
 }
 \description{
 Finds all data from benchmark_info_id matched with pm_fund_info_id
+}
+\examples{
+get_benchmark_fund_relationship(return_tibble = TRUE)
+# A tibble: 282 x 3
+# pm_fund_info_id benchmark_info_id benchmark_type
+# <int>                <int>               <chr>
+#  1                    53                 PVT
+#  2                    53                 PVT
+#  3                    53                 PVT
+# ... with 279 more rows
 }

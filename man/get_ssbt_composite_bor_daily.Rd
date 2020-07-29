@@ -10,7 +10,9 @@ get_ssbt_composite_bor_daily(
 )
 }
 \arguments{
-\item{...}{filtering expressions. i.e. effective_date >= '2018-01-01'}
+\item{con}{is a database connection object from AZASRS::AZASRS_DATABASE_CONNECTION()}
+
+\item{return_tibble}{is a boolean that determines whether or not a tibble is returned instead}
 }
 \value{
 Returns a tibble with all composite data but can be filtered.
@@ -19,12 +21,12 @@ Returns a tibble with all composite data but can be filtered.
 Gets composite book of record daily
 }
 \examples{
-get_ssbt_composite_bor_daily(effective_date >= '2018-01-01')
-# A tibble: 4,160 x 10
+get_ssbt_composite_bor_daily()
+# A tibble: 8,728 x 10
 # ssbt_composite_in~ effective_date   beginning_market~ ending_market_v~ net_cash_flow daily_return ssbt_composite_~
 #   <int>               <chr>              <dbl>            <dbl>         <dbl>        <dbl>           <chr>
-#    24               2018-06-30         1467349533.      1482968778.          0       0.0106          Comp1
-#    24               2018-07-02         1482974842.      1463381621.          0       0               Comp2
-# ... with 4,150 more rows, and 3 more variables: ssbt_composite_description <chr>,
+#    1               2018-06-30           39655974310.      39656200393.     0         0.0000057       ASRSA001
+#    1               2018-07-02           39633650853      39565538581     17053151    -0.00215        ASRSA001
+# … with 8,726 more rows, and 3 more variables: ssbt_composite_description <chr>,
 #  ssbt_composite_short_description <chr>, benchmark_info_id <int>
 }

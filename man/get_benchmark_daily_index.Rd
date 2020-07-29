@@ -6,31 +6,33 @@
 \usage{
 get_benchmark_daily_index(
   con = AZASRS_DATABASE_CONNECTION(),
-  bench_type = "PVT",
+  benchmark_type = "PVT",
   all_bench_types = FALSE,
   return_tibble = FALSE
 )
 }
 \arguments{
-\item{...}{filtering expressions. i.e. effective_date >= '2018-01-01'}
+\item{con}{is a database connection object from AZASRS::AZASRS_DATABASE_CONNECTION()}
+
+\item{all_bench_types}{is a boolean that determines whether or not all bench types are returned}
+
+\item{return_tibble}{is a boolean that determines whether or not a tibble is returned instead}
+
+\item{bench_type}{is the type of benchmark where default is 'PVT' which is private}
 }
 \value{
-Returns a tibble with all benchmark index data but can be filtered.
+Returns a tibble or database object.
 }
 \description{
 Gets benchmark index data by day and only allows one bench_type (i.e. SAA). Joins data from pm_fund_info, benchmark_info and filters by benchmark type. Caution: returns A LOT of data, filter for better performance.
 }
 \examples{
-get_benchmark_daily_index(effective_date >= '2018-01-01')
-# A tibble: 134,953 x 28
-# benchmark_info_id effective_date index_value pm_fund_info_id benchmark_type_info_id benchmark_type pm_fund_id
-# <int>                <date>               <dbl>           <int>                  <int> <chr>          <chr>
-#  64                 2018-01-01           3666.              38                      1 SAA            Fund1
-#  64                 2018-01-01           3666.              39                      1 SAA            Fund2
-#  64                 2018-01-01           3666.              40                      1 SAA            Fund3
-# ... with 134,943 more rows, and 21 more variables: pm_fund_description <chr>, pm_fund_portfolio_id <int>,
-#   pm_fund_category_id <int>, pm_fund_sponsor_id <int>, pm_fund_city_id <int>, pm_fund_sector_id <int>,
-#   vintage <int>, commit <dbl>, unfunded <dbl>, legacy <chr>, specialist <chr>, invest_end <chr>, term_end <chr>,
-#   extension <dbl>, ext_time <dbl>, ext_used <dbl>, fee_cat <chr>, consultant <chr>, adv_board <int>, obsvr <int>,
-#   fund_size_m <dbl>
+get_benchmark_daily_index(return_tibble = TRUE)
+# A tibble: 76,693 x 4
+# benchmark_info_id effective_date index_value benchmark_id
+# <int>                <date>               <dbl>           <chr>
+#  53                 2004-01-02            1             LSTA+250
+#  53                 2004-01-03            1.00          LSTA+250
+#  53                 2004-01-04            1.00          LSTA+250
+# ... with 76,690 more rows
 }

@@ -10,5 +10,5 @@ UPDATE_DATABASE(filename, development = 0, local_azure_functions = FALSE)
 To be used with individual files. Note: the first connection takes a long time to spin up the server, then should work quickly if more files are necessary.
 }
 \examples{
-UPDATE_DATABASE('pm_fund_info.csv')
+UPDATE_DATABASE("pm_fund_info.csv")
 }

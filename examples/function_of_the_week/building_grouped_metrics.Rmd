@@ -1,0 +1,77 @@
+---
+title: "Building grouped metrics"
+output: pdf_document
+---
+
+
+```{r, warning=FALSE, message=FALSE}
+library(AZASRS)
+library(tidyverse)
+```
+
+
+## Setting up data to utilize function more efficiently
+
+This data is not required and can be called dynamically. However, that is extremely inefficient and requires multiple connections and calls to the database. This is very important when you need to pull data more than once.
+
+```{r}
+con = AZASRS_DATABASE_CONNECTION()
+cash_adjusted = FALSE
+nav_daily = get_pm_nav_daily(con = con)
+cf_daily = get_pm_cash_flow_daily(con = con)
+bench_daily_index = get_benchmark_daily_index(con = con, benchmark_type = "PVT", return_tibble = TRUE)
+bench_relationships = get_benchmark_fund_relationship(con = con, bench_type = "PVT", return_tibble = TRUE)
+pm_fund_info = get_pm_fund_info(con = con)
+```
+
+
+## Build metrics
+
+Now that your data has been stored in memory, you may quickly calculate your metrics.
+
+`itd = TRUE` must be present in order to calculate metrics that require benchmark data (DVA, PME, etc.). If it is not there, you can still find IRR, TVPI, etc. but the rest will simply show as `NA`. This `itd` is based off of the `end_date` supplied. This will also be visible in the last column which is labeled `period`
+```{r}
+start_date = "2016-12-31"
+end_date = "2020-03-31"
+itd = TRUE
+
+data = build_grouped_pm_metrics(pm_fund_portfolio,
+                                con = con,
+                                start_date = start_date,
+                                end_date = end_date,
+                                itd = itd,
+                                cash_adjusted = cash_adjusted,
+                                nav_daily = nav_daily,
+                                cf_daily = cf_daily,
+                                bench_daily_index = bench_daily_index,
+                                bench_relationships = bench_relationships,
+                                pm_fund_info = pm_fund_info)
+
+data
+```
+
+
+## Pick an arbitrary timeframe (must end in a quarter)
+
+You'll see that with `itd = FALSE` certain metrics will not come through. This is by design. You'll notice that the last column, `period` shows the number of years.
+
+```{r}
+start_date = "2016-06-30"
+end_date = "2019-06-30"
+itd = FALSE
+
+data = build_grouped_pm_metrics(pm_fund_portfolio,
+                                con = con,
+                                start_date = start_date,
+                                end_date = end_date,
+                                itd = itd,
+                                cash_adjusted = cash_adjusted,
+                                nav_daily = nav_daily,
+                                cf_daily = cf_daily,
+                                bench_daily_index = bench_daily_index,
+                                bench_relationships = bench_relationships,
+                                pm_fund_info = pm_fund_info)
+
+data
+```
+

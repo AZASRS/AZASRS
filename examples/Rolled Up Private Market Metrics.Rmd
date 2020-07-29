@@ -1,0 +1,98 @@
+---
+title: "Rolled Up Private Market Metrics"
+author: "ASRS"
+date: "5/22/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(AZASRS)
+start_date = '2019-09-30'
+end_date = '2019-12-31'
+benchmark_type = 'PVT'
+itd = FALSE
+cash_adjusted = FALSE
+```
+
+
+Download all data 
+```{r}
+con = AZASRS::AZASRS_DATABASE_CONNECTION()
+nav_daily = get_pm_nav_daily(con = con)
+cf_daily = get_pm_cash_flow_daily(con = con)
+pm_fund_info = get_pm_fund_info(con = con)
+
+benchmark_relationships = get_benchmark_fund_relationship(con = con,
+                                                          benchmark_type = benchmark_type,
+                                                          all_benchmark_types = FALSE,
+                                                          return_tibble = TRUE)
+benchmark_daily_index = get_benchmark_daily_index(con = con,
+                                                  all_benchmark_types = TRUE,
+                                                  return_tibble = TRUE)
+
+benchmark_daily_index_fv = build_benchmark_fv_index_factor(con = con,
+                                                           end_date = end_date,
+                                                           benchmark_daily_index = benchmark_daily_index)
+```
+
+
+Create all metrics!
+
+## Portfolio
+```{r}
+build_grouped_pm_metrics(con = con,
+                        start_date = start_date,
+                        end_date = end_date,
+                        itd = FALSE,
+                        cash_adjusted = cash_adjusted,
+                        benchmark_type = 'PVT',
+                        nav_daily = nav_daily,
+                        cf_daily = cf_daily,
+                        benchmark_daily_index = benchmark_daily_index,
+                        benchmark_daily_index_fv = benchmark_daily_index_fv,
+                        benchmark_relationships = benchmark_relationships,
+                        pm_fund_info = pm_fund_info,
+                        pm_fund_portfolio)
+
+```
+
+
+## Portfolio, Category
+```{r}
+build_grouped_pm_metrics(con = con,
+                        start_date = start_date,
+                        end_date = end_date,
+                        itd = FALSE,
+                        cash_adjusted = cash_adjusted,
+                        benchmark_type = 'PVT',
+                        nav_daily = nav_daily,
+                        cf_daily = cf_daily,
+                        benchmark_daily_index = benchmark_daily_index,
+                        benchmark_daily_index_fv = benchmark_daily_index_fv,
+                        benchmark_relationships = benchmark_relationships,
+                        pm_fund_info = pm_fund_info,
+                        pm_fund_portfolio, pm_fund_category_description)
+
+```
+
+
+## Portfolio, Category, Fund
+```{r}
+build_grouped_pm_metrics(con = con,
+                        start_date = start_date,
+                        end_date = end_date,
+                        itd = FALSE,
+                        cash_adjusted = cash_adjusted,
+                        benchmark_type = 'PVT',
+                        nav_daily = nav_daily,
+                        cf_daily = cf_daily,
+                        benchmark_daily_index = benchmark_daily_index,
+                        benchmark_daily_index_fv = benchmark_daily_index_fv,
+                        benchmark_relationships = benchmark_relationships,
+                        pm_fund_info = pm_fund_info,
+                        pm_fund_portfolio, pm_fund_category_description, pm_fund_common_name) %>%
+  dplyr::select(pm_fund_common_name, pme, irr, tvpi, dva, nav)
+
+```
+

@@ -1,0 +1,101 @@
+---
+title: "All PM Metrics"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(purrr)
+library(AZASRS)
+```
+
+
+# Calculate Private Market Metrics
+
+The first entry for the `build_grouped_pm_metrics` function is `...` - this is where you can insert the breakdown you'd like.
+
+For example, to simply see by fund, you could use `build_grouped_pm_metrics(pm_fund_common_name)`
+
+For inception to date, simply use `itd = TRUE`
+```{r}
+# ITD category metrics
+df = build_grouped_pm_metrics(pm_fund_portfolio, pm_fund_category_description, 
+                              itd = TRUE)
+df
+```
+
+
+For any date range other than ITD, simply enter a start and end date. Note that certain metrics will be `NA`. This will be true for any metrics that require `itd=TRUE` 
+
+```{r}
+# Last quarter's portfolio metrics
+value_date = get_value_date()
+start_date = calc_add_qtrs(value_date, -1)
+
+df = build_grouped_pm_metrics(pm_fund_common_name,
+                              start_date = start_date,
+                              end_date = value_date)
+df
+```
+
+
+# If doing more than 1 calculation!
+
+
+Setup all data
+```{r}
+con = AZASRS_DATABASE_CONNECTION()
+nav_daily = get_pm_nav_daily(con = con)
+cf_daily = get_pm_cash_flow_daily(con = con)
+bench_daily = get_benchmark_daily_index(con = con, benchmark_type = "PVT", return_tibble = TRUE)
+bench_relationships = get_benchmark_fund_relationship(con = con, bench_type = "PVT", return_tibble = TRUE)
+pm_fund_info = get_pm_fund_info(con = con)
+```
+
+Then call based off of variable dates
+
+```{r}
+cash_adjusted = FALSE
+itd = FALSE
+start_date = "2014-12-31"
+end_date = get_value_date(con = con)
+
+df = build_grouped_pm_metrics(pm_fund_common_name,
+                               con = con,
+                               start_date = start_date,
+                               end_date = end_date,
+                               itd = itd,
+                               cash_adjusted = cash_adjusted,
+                               nav_daily = nav_daily,
+                               cf_daily = cf_daily,
+                               bench_daily = bench_daily,
+                               bench_relationships = bench_relationships,
+                               pm_fund_info = pm_fund_info)
+
+df
+```
+
+# For ALL date ranges :)
+
+```{r}
+date_ranges <- tibble()
+for (i in c(1, 4, 12, 20, 40)) {
+  date_range <- build_lagged_date_range_df(
+    start_date = "2004-06-30",
+    end_date = end_date, n_qtrs = i
+  ) %>%
+    mutate(n_qtrs = i)
+  date_ranges <- bind_rows(date_ranges, date_range)
+}
+
+date_range_itd <- build_lagged_date_range_df(
+  start_date = "2004-06-30",
+  end_date = end_date, n_qtrs = 1
+) %>%
+  mutate(n_qtrs = 1)
+```
+
+
+
+

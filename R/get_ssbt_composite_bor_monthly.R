@@ -1,27 +1,26 @@
 #' Get SSBT composite book of record monthly
 #'
 #' @description Gets composite book of record monthly
-#' @param ... filtering expressions. i.e. effective_date >= '2018-01-01'
-#' @return Returns a tibble with all composite data but can be filtered.
+#' @param con is a database connection object from AZASRS::AZASRS_DATABASE_CONNECTION()
+#' @param return_tibble is a boolean that determines whether or not a tibble is returned instead
+#' @return Returns a tibble with all composite data.
 #' @examples
-#' get_ssbt_composite_bor_monthly(effective_date >= '2018-01-01')
-#' # A tibble: 4,160 x 10
-#' # ssbt_composite_in~ effective_date   beginning_market~ ending_market_v~ net_cash_flow monthly_return fiscal_ytd_retu~
-#' #   <int>               <chr>              <dbl>            <dbl>         <dbl>        <dbl>           <chr>
-#' #    24               2018-12-31         1467349533.      1482968778.          0       0.0106          0
-#' #    25               2018-12-31         1482974842.      1463381621.          0       0               0
-#' # ... with 13 more rows, and 4 more variables: ssbt_composite_id <chr>, ssbt_composite_description <chr>,
-#' #   ssbt_composite_short_description <chr>, benchmark_info_id <int>
+#' get_ssbt_composite_bor_monthly()
+#' # A tibble: 69 x 11
+#' # ssbt_composite_in~ effective_date   beginning_market~ ending_market_v~ net_cash_flow monthly_return
+#' #   <int>               <chr>              <dbl>            <dbl>         <dbl>        <dbl>
+#' #    1               2019-04-30          40252843769.      40913563817.    -79339045.    NA
+#' #    1               2019-05-31          40913563817.      39862718836.    -308823057.   NA
+#' # … with 67 more rows, and 5 more variables: fiscal_ytd_return <dbl>, ssbt_composite_id <chr>,
+#' #   ssbt_composite_description <chr>, ssbt_composite_short_description <chr>, benchmark_info_id <int>
 #' @export
-get_ssbt_composite_bor_monthly = function(con = AZASRS_DATABASE_CONNECTION(), return_tibble = TRUE){
+get_ssbt_composite_bor_monthly <- function(con = AZASRS_DATABASE_CONNECTION(), return_tibble = TRUE) {
+  dat <- tbl_ssbt_composite_book_of_record_monthly(con) %>%
+    dplyr::left_join(tbl_ssbt_composite_info(con), by = "ssbt_composite_info_id")
 
-  dat = tbl_ssbt_composite_book_of_record_monthly(con) %>%
-    dplyr::left_join(tbl_ssbt_composite_info(con), by = 'ssbt_composite_info_id')
-
-  if(return_tibble){
+  if (return_tibble) {
     return(dat %>% tibble::as_tibble())
-  } else{
+  } else {
     return(dat)
   }
-
 }

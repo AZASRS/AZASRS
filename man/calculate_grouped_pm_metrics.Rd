@@ -2,15 +2,15 @@
 % Please edit documentation in R/build_grouped_pm_metrics.R
 \name{calculate_grouped_pm_metrics}
 \alias{calculate_grouped_pm_metrics}
-\title{Calculate the rollup IRR}
+\title{Calculate the rollup metrics}
 \usage{
 calculate_grouped_pm_metrics(.data, ...)
 }
 \arguments{
-\item{.data}{is from clean_nav_cf()}
+\item{.data}{is from build_grouped_pm_cash_flow()}
 
 \item{...}{aggregation choices from from pm_fund_info (i.e. pm_fund_portfolio, pm_fund_category, pm_fund_id)}
 }
 \description{
-Calculates the IRR from a list of "cash flow" from clean_nav_cf()
+Calculates the major financial metrics
 }

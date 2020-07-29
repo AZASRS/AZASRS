@@ -6,6 +6,12 @@
 \usage{
 get_next_quarter(con = AZASRS_DATABASE_CONNECTION())
 }
+\arguments{
+\item{con}{object from AZASRS_DATABASE_CONNECTION()}
+}
+\value{
+string of YYYY-mm-dd of value date as set by ASRS + 1 qtr
+}
 \description{
 Finds the next quarter date based off of constants table from most recent database population
 }

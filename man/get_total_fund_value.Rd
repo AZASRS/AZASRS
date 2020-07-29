@@ -9,16 +9,18 @@ get_total_fund_value(
   con = AZASRS_DATABASE_CONNECTION()
 )
 }
+\arguments{
+\item{value_date}{grabs the date from the get_value_data() function}
+
+\item{con}{is a database connection object from AZASRS::AZASRS_DATABASE_CONNECTION()}
+}
 \value{
-<numeric> from ssbt_composite_book_of_record_daily by date selected (default = valdate)
+Value from ssbt_composite_book_of_record_daily by date selected (default = valdate).
 }
 \description{
 Finds the most recent fund value for TOTAL FUND. Can be filtered to select by individual date.
 }
 \examples{
-get_total_fund_value()
-# 38015261515
-
-get_total_fund_value(at_date = '2018-06-30')
+get_total_fund_value(value_date = "2018-06-30")
 # 39656200393
 }

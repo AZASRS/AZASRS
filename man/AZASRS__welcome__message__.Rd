@@ -4,7 +4,9 @@
 \name{AZASRS__welcome__message__}
 \alias{AZASRS__welcome__message__}
 \title{Opening Remarks}
-\format{An object of class \code{character} of length 1.}
+\format{
+An object of class \code{character} of length 1.
+}
 \usage{
 AZASRS__welcome__message__
 }

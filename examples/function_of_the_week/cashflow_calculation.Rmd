@@ -1,0 +1,98 @@
+---
+title: "Finding Cashflow by Roll Up"
+output: pdf_document
+---
+
+```{r, warning=FALSE, message=FALSE}
+library(AZASRS)
+library(tidyverse)
+```
+
+
+# Find the latest cashflow by any grouping
+
+Highlighting the importance of `get_pm_cash_flow_daily()` when looking for the latest CF value
+
+
+### All CF data since the beginning of time
+```{r}
+cf = get_pm_cash_flow_daily()
+cf
+```
+
+### Filter only most recently reported CF date
+
+**(removing all 0 CF funds)**
+**Not Cash Adjusted** -- will only find reported values
+
+#### At the fund level
+```{r}
+latest_fund_cf = cf %>%
+  filter(cf != 0) %>%
+  group_by(pm_fund_id) %>%
+  filter(effective_date == max(effective_date)) %>%
+  ungroup()
+latest_fund_cf
+```
+
+
+#### At the portfolio level 
+
+```{r}
+latest_portfolio_cf = cf %>%
+  filter(cf != 0) %>%
+  group_by(pm_fund_portfolio) %>%
+  filter(effective_date == max(effective_date)) %>%
+  summarize(effective_date =  max(effective_date), CF = sum(cash_flow)) %>%
+  ungroup()
+latest_portfolio_cf
+```
+
+
+#### At the category levels, also show portfolio
+
+```{r}
+latest_category_cf = cf %>%
+  filter(cf != 0) %>%
+  group_by(pm_fund_portfolio, pm_fund_category_description) %>%
+  filter(effective_date == max(effective_date)) %>%
+  summarize(effective_date =  max(effective_date), CF = sum(cash_flow)) %>%
+  ungroup()
+latest_category_cf
+```
+
+
+
+# Finding CF based off of specific date
+
+Utilizing `effective_date` of `2019-12-31`
+
+
+#### At the portfolio level 
+
+```{r}
+specific_date_portfolio_cf = cf %>%
+  filter(cf != 0) %>%
+  group_by(pm_fund_portfolio) %>%
+  filter(effective_date == '2019-12-31') %>%
+  summarize(effective_date =  max(effective_date), CF = sum(cash_flow)) %>%
+  ungroup()
+specific_date_portfolio_cf
+```
+
+
+## Between a range of dates
+
+Between `effective_date` of `2007-01-01` and `2014-12-31`
+
+```{r}
+range_portfolio_cf = cf %>%
+  filter(cf != 0) %>%
+  group_by(pm_fund_portfolio, pm_fund_category_description) %>%
+  filter(effective_date >= '2007-01-01' & effective_date <= '2014-12-31') %>%
+  summarize(effective_date = effective_date, CF = sum(cash_flow)) %>%
+  ungroup()
+range_portfolio_cf
+```
+
+# grouped by quarter, choose arbitrary amount

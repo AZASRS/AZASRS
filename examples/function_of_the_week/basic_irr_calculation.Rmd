@@ -1,0 +1,83 @@
+---
+title: "Finding NAV by Roll Up"
+output: pdf_document
+---
+
+
+```{r, warning=FALSE, message=FALSE}
+library(AZASRS)
+library(tidyverse)
+```
+
+
+# Find the latest NAV by any grouping
+
+Highlighting the importance of `get_pm_nav_daily()` when looking for the latest NAV value
+
+
+### All NAV data since the beginning of time
+```{r}
+nav = get_pm_nav_daily()
+nav
+```
+### Filter only most recently reported NAV date
+
+**(removing all 0 NAV funds)**
+**Not Cash Adjusted** -- will only find reported values
+
+#### At the fund level
+```{r}
+latest_fund_nav = nav %>%
+  filter(nav != 0) %>%
+  group_by(pm_fund_id) %>%
+  filter(effective_date == max(effective_date)) %>%
+  ungroup()
+latest_fund_nav
+```
+
+
+#### At the portfolio level 
+
+```{r}
+latest_portfolio_nav = nav %>%
+  filter(nav != 0) %>%
+  group_by(pm_fund_portfolio) %>%
+  filter(effective_date == max(effective_date)) %>%
+  summarize(effective_date =  max(effective_date), NAV = sum(nav)) %>%
+  ungroup()
+latest_portfolio_nav
+```
+
+
+#### At the category levels, also show portfolio
+
+```{r}
+latest_category_nav = nav %>%
+  filter(nav != 0) %>%
+  group_by(pm_fund_portfolio, pm_fund_category_description) %>%
+  filter(effective_date == max(effective_date)) %>%
+  summarize(effective_date =  max(effective_date), NAV = sum(nav)) %>%
+  ungroup()
+latest_category_nav
+```
+
+
+
+# Finding NAV based off of specific date
+
+Utilizing `effective_date` of `2019-12-31`
+
+
+#### At the portfolio level 
+
+```{r}
+latest_portfolio_nav = nav %>%
+  filter(nav != 0) %>%
+  group_by(pm_fund_portfolio) %>%
+  filter(effective_date == '2019-12-31') %>%
+  summarize(effective_date =  max(effective_date), NAV = sum(nav)) %>%
+  ungroup()
+latest_portfolio_nav
+```
+
+

@@ -19,15 +19,21 @@ build_privm_metrics(
 \arguments{
 \item{...}{grouping variables (pm_fund_id, pm_fund_portfolio, etc.)}
 
-\item{nav_daily}{is data from get_pm_nav_daily() and can be previously loaded and filtered}
+\item{con}{is a database connection object from AZASRS::AZASRS_DATABASE_CONNECTION()}
 
-\item{cf_daily}{is data from get_pm_cash_flow_daily() and can be previously loaded and filtered}
+\item{nav_daily}{is the object of get_pm_nav_daily()}
 
-\item{start_date}{is the earliest date to be used for calculations, use for custom time ranges}
+\item{cf_daily}{is the object of get_pm_cash_flow_daily()}
 
-\item{value_date}{is the last quarter end, use for custom time ranges}
+\item{benchmark_daily}{is the object of build_benchmark_fv_index_factor()}
 
-\item{pcap_date}{is the last date to be used for PCAP, use for custom time ranges}
+\item{pmfi}{is the object of get_pm_fund_info()}
+
+\item{start_date}{is the start date of analysis}
+
+\item{value_date}{is the object of get_value_date()}
+
+\item{pcap_date}{is the cutoff date of analysis}
 }
 \value{
 Returns a tibble with grouping variables and all of their respective metrics
