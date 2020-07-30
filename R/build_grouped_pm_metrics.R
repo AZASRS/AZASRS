@@ -49,8 +49,8 @@ build_grouped_pm_metrics <- function(...,
 
   # If not ITD, then certain metrics do not apply
   if (!itd) {
-    dat <- dat %>%
-      dplyr::mutate(pme = NA, tvpi = NA, dpi = NA, dva = NA)
+    dat <- dat #%>%
+      #dplyr::mutate(pme = NA, tvpi = NA, dpi = NA, dva = NA)
   }
 
   return(dat)
