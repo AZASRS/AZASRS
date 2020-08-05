@@ -30,7 +30,7 @@ AZASRS_DATABASE_CONNECTION <- function(development = 0) {
   if (os == "Darwin" | os == "mac" | os == "Windows") {
     driverName <- "ODBC Driver 17 for SQL Server"
   } else if(os == "Linux"){
-    driverName <- "ODBC Driver 13 for SQL Server"
+    driverName <- "SQLServer"
   }
   else {
     driverName <- "SQLServer"
