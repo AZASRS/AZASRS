@@ -27,12 +27,20 @@ AZASRS_DATABASE_CONNECTION <- function(development = 0) {
   # Detect OS & Set Driver (important for Windows, Shiny/Linux, Mac)
   os <- Sys.info()[1]
   username <- Sys.info()[6]
-  if (os == "Darwin" | os == "mac" | os == "Windows" | os == "Linux") {
+  if (os == "Darwin" | os == "mac" | os == "Windows") {
     driverName <- "ODBC Driver 17 for SQL Server"
+  } else if(os == "Linux"){
+    driverName <- "ODBC Driver 13 for SQL Server"
   }
   else {
     driverName <- "SQLServer"
   }
+
+  if(username == 'asrsadmin'){
+    # For virtual machine only.
+    driverName <- "ODBC Driver 17 for SQL Server"
+  }
+
   tryCatch(
     {
       connection <- DBI::dbConnect(odbc::odbc(),
