@@ -30,7 +30,7 @@ AZASRS_DATABASE_CONNECTION <- function(development = 0) {
   if (os == "Darwin" | os == "mac" | os == "Windows") {
     driverName <- "ODBC Driver 17 for SQL Server"
   } else if(os == "Linux"){
-    driverName <- "ODBC Driver 17 for SQL Server"
+    driverName <- "SQLServer"
   }
   else {
     driverName <- "SQLServer"
@@ -44,12 +44,12 @@ AZASRS_DATABASE_CONNECTION <- function(development = 0) {
   tryCatch(
     {
       connection <- DBI::dbConnect(odbc::odbc(),
-        Driver = driverName,
-        Server = Sys.getenv("SERVER"),
-        Database = database,
-        UID = Sys.getenv("UID"),
-        PWD = Sys.getenv("PWD"),
-        Port = Sys.getenv("PORT")
+                                   Driver = driverName,
+                                   Server = Sys.getenv("SERVER"),
+                                   Database = database,
+                                   UID = Sys.getenv("UID"),
+                                   PWD = Sys.getenv("PWD"),
+                                   Port = Sys.getenv("PORT")
       )
     },
     error = function(e) {
@@ -58,12 +58,12 @@ AZASRS_DATABASE_CONNECTION <- function(development = 0) {
       print(e)
 
       connection <- DBI::dbConnect(odbc::odbc(),
-        Driver = driverName,
-        Server = Sys.getenv("SERVER"),
-        Database = database,
-        UID = Sys.getenv("UID"),
-        PWD = Sys.getenv("PWD"),
-        Port = Sys.getenv("PORT")
+                                   Driver = driverName,
+                                   Server = Sys.getenv("SERVER"),
+                                   Database = database,
+                                   UID = Sys.getenv("UID"),
+                                   PWD = Sys.getenv("PWD"),
+                                   Port = Sys.getenv("PORT")
       )
     }
   )
