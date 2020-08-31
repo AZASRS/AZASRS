@@ -44,12 +44,12 @@ AZASRS_DATABASE_CONNECTION <- function(development = 0) {
   tryCatch(
     {
       connection <- DBI::dbConnect(odbc::odbc(),
-        Driver = driverName,
-        Server = Sys.getenv("SERVER"),
-        Database = database,
-        UID = Sys.getenv("UID"),
-        PWD = Sys.getenv("PWD"),
-        Port = Sys.getenv("PORT")
+                                   Driver = driverName,
+                                   Server = Sys.getenv("SERVER"),
+                                   Database = database,
+                                   UID = Sys.getenv("UID"),
+                                   PWD = Sys.getenv("PWD"),
+                                   Port = Sys.getenv("PORT")
       )
     },
     error = function(e) {
@@ -58,12 +58,12 @@ AZASRS_DATABASE_CONNECTION <- function(development = 0) {
       print(e)
 
       connection <- DBI::dbConnect(odbc::odbc(),
-        Driver = driverName,
-        Server = Sys.getenv("SERVER"),
-        Database = database,
-        UID = Sys.getenv("UID"),
-        PWD = Sys.getenv("PWD"),
-        Port = Sys.getenv("PORT")
+                                   Driver = driverName,
+                                   Server = Sys.getenv("SERVER"),
+                                   Database = database,
+                                   UID = Sys.getenv("UID"),
+                                   PWD = Sys.getenv("PWD"),
+                                   Port = Sys.getenv("PORT")
       )
     }
   )
@@ -150,6 +150,7 @@ INITIAL_DATABASE_POPULATION <- function(development = 0, local_azure_functions =
     "composite_book_of_record_monthly.csv",
     "account_book_of_record_daily.csv",
     "account_book_of_record_monthly.csv",
+    "account_futures.csv",
     "create_views"
   )
 
@@ -264,6 +265,11 @@ tbl_account_info_benchmark_info <- function(con = AZASRS_DATABASE_CONNECTION()) 
 #' @export
 tbl_account_info_pm_fund_info <- function(con = AZASRS_DATABASE_CONNECTION()) {
   dplyr::tbl(con, "account_info_pm_fund_info")
+}
+
+#' @export
+tbl_account_futures <- function(con = AZASRS_DATABASE_CONNECTION()) {
+  dplyr::tbl(con, "account_futures")
 }
 
 #' @export

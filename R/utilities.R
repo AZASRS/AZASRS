@@ -146,13 +146,13 @@ calc_time_delta <- function(.data, start_date, end_date) {
       period = round(as.integer(difftime(end_date, start_date, units = "days")) / 365, 2),
       period = dplyr::case_when(
         period == 0.00 ~ "0 Years",
-        period == 0.25 ~ "1 Quarter",
-        period == 0.50 ~ "6 Months",
-        period == 1.00 ~ "1 Year",
-        period == 3.00 ~ "3 Years",
-        period == 5.00 ~ "5 Years",
-        period == 7.00 ~ "7 Years",
-        period == 10.00 ~ "10 Years",
+        period > 0.23 & period < 0.27  ~ "1 Quarter",
+        period > 0.48 & period < 0.52 ~ "6 Months",
+        period > 0.98 & period < 1.02 ~ "1 Year",
+        period > 2.98 & period < 3.02 ~ "3 Years",
+        period > 4.98 & period < 5.02 ~ "5 Years",
+        period > 6.98 & period < 7.02 ~ "7 Years",
+        period > 9.98 & period < 10.02 ~ "10 Years",
         TRUE ~ paste(as.character(round(period, 2)), " Years")
       )
     )

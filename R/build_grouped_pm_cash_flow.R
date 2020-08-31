@@ -12,6 +12,7 @@
 #' @param bench_daily is the object of get_benchmark_daily_index()
 #' @param bench_relationships is the object of get_benchmark_fund_relationship()
 #' @param pm_fund_info is the object of get_pm_fund_info()
+#' @param cash_adjusted_all overrides cash_adjusted and combines cash_adjusted + reported
 #' @export
 build_grouped_pm_cash_flow <- function(...,
                                        con = AZASRS_DATABASE_CONNECTION(),
@@ -23,7 +24,13 @@ build_grouped_pm_cash_flow <- function(...,
                                        cf_daily = get_pm_cash_flow_daily(con = con),
                                        bench_daily = get_benchmark_daily_index(con = con, benchmark_type = "PVT", return_tibble = TRUE),
                                        bench_relationships = get_benchmark_fund_relationship(con = con, bench_type = "PVT", return_tibble = TRUE),
-                                       pm_fund_info = get_pm_fund_info(con = con)) {
+                                       pm_fund_info = get_pm_fund_info(con = con),
+                                       cash_adjusted_all = FALSE) {
+
+
+  # Immediately filter out 0 to ensure "not reported" works as intended
+  nav_daily <- nav_daily %>% dplyr::filter(nav != 0)
+  cf_daily <- cf_daily %>% dplyr::filter(cash_flow != 0)
 
   # Test to see whether or not data needs to be rolled up
   IS_NOT_AGGREGATED <- test_is_not_rollup(...)
@@ -33,8 +40,71 @@ build_grouped_pm_cash_flow <- function(...,
     start_date <- "2004-06-30"
   }
 
-  nav_daily <- nav_daily %>% dplyr::filter(nav != 0)
-  cf_daily <- cf_daily %>% dplyr::filter(cash_flow != 0)
+  #######
+  # Determine active funds and those that have / have not reported
+  funds_active <- tibble::tibble(pm_fund_id = unique(c(
+    nav_daily %>%
+      dplyr::filter(effective_date >= calc_add_qtrs(end_date, -1)) %>%
+      dplyr::select(pm_fund_id) %>%
+      dplyr::pull(),
+    cf_daily %>%
+      dplyr::filter(effective_date > calc_add_qtrs(end_date, -1)) %>%
+      dplyr::select(pm_fund_id) %>%
+      dplyr::pull())))
+
+  funds_reported <- tibble::tibble(pm_fund_id = unique(nav_daily %>%
+                                                         dplyr::filter(effective_date == end_date) %>%
+                                                         dplyr::select(pm_fund_id) %>%
+                                                         dplyr::pull()))
+
+  funds_not_reported = funds_active %>%
+    dplyr::anti_join(funds_reported, by = 'pm_fund_id')
+  #######
+
+  # Cash adjusted should simply create a NAV at the end_date that is previous NAV + cash flows
+  if(cash_adjusted){
+
+    if(cash_adjusted_all){
+      nav_daily_ = nav_daily %>%
+        dplyr::inner_join(funds_active, by = 'pm_fund_id')
+      cf_daily_ = cf_daily %>%
+        dplyr::inner_join(funds_active, by = 'pm_fund_id')
+    } else{
+      nav_daily_ = nav_daily %>%
+        dplyr::inner_join(funds_not_reported, by = 'pm_fund_id')
+      cf_daily_ = cf_daily %>%
+        dplyr::inner_join(funds_not_reported, by = 'pm_fund_id')
+    }
+
+    first_nav = nav_daily_ %>%
+      dplyr::group_by(pm_fund_id) %>%
+      dplyr::filter(effective_date == calc_add_qtrs(end_date, -1)) %>%
+      dplyr::summarize(nav = dplyr::last(nav, order_by = effective_date)) %>%
+      dplyr::ungroup()
+
+    cf_addition_to_nav = cf_daily_ %>%
+      dplyr::filter(effective_date > calc_add_qtrs(end_date, -1)) %>%
+      dplyr::group_by(pm_fund_id) %>%
+      dplyr::summarize(nav = sum(-1 * cash_flow)) %>% #negative allows it to count toward NAV
+      dplyr::ungroup()
+
+    last_nav = first_nav %>%
+      dplyr::bind_rows(cf_addition_to_nav) %>%
+      dplyr::group_by(pm_fund_id) %>%
+      dplyr::summarize(nav = sum(nav)) %>%
+      dplyr::ungroup() %>%
+      dplyr::mutate(effective_date = lubridate::as_date(end_date)) %>%
+      dplyr::left_join(pm_fund_info, by = 'pm_fund_id')
+
+    nav_daily_ = nav_daily_ %>%
+      dplyr::bind_rows(last_nav)
+
+    nav_daily = nav_daily %>%
+      #dplyr::anti_join(funds_not_reported, by = 'pm_fund_id') %>%
+      dplyr::bind_rows(nav_daily_)
+
+  }
+
 
   bench_daily = bench_daily %>%
     dplyr::filter(effective_date >= start_date, effective_date <= end_date) %>%
@@ -47,7 +117,7 @@ build_grouped_pm_cash_flow <- function(...,
 
   cf_prep <- cf_daily %>%
     dplyr::filter(
-      effective_date >= start_date,
+      effective_date > start_date,
       effective_date <= end_date
     ) %>%
     dplyr::mutate(nav = 0)
@@ -211,7 +281,7 @@ filter_cf_between_dates <- function(.data, start_date, end_date, itd) {
   } else {
     .data %>%
       dplyr::filter(
-        effective_date >= start_date,
+        effective_date > start_date,
         effective_date <= end_date
       )
   }
@@ -273,7 +343,7 @@ merge_nav_and_cf <- function(.nav_data, .cf_data, end_date, cash_adjusted, pm_fu
 
 
     # append cash adjusted nav to not reported nav
-    .nav_data <- .nav_data %>% bind_rows(cf_as_nav)
+    .nav_data <- .nav_data %>% dplyr::bind_rows(cf_as_nav)
     return(dplyr::bind_rows(.nav_data, .cf_data))
   }
 }

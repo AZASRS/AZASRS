@@ -17,7 +17,8 @@ build_grouped_pm_cash_flow(
     return_tibble = TRUE),
   bench_relationships = get_benchmark_fund_relationship(con = con, bench_type = "PVT",
     return_tibble = TRUE),
-  pm_fund_info = get_pm_fund_info(con = con)
+  pm_fund_info = get_pm_fund_info(con = con),
+  cash_adjusted_all = FALSE
 )
 }
 \arguments{
@@ -40,6 +41,8 @@ build_grouped_pm_cash_flow(
 \item{bench_relationships}{is the object of get_benchmark_fund_relationship()}
 
 \item{pm_fund_info}{is the object of get_pm_fund_info()}
+
+\item{cash_adjusted_all}{overrides cash_adjusted and combines cash_adjusted + reported}
 
 \item{.data}{is from clean_nav_cf()}
 }
