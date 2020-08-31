@@ -27,12 +27,20 @@ AZASRS_DATABASE_CONNECTION <- function(development = 0) {
   # Detect OS & Set Driver (important for Windows, Shiny/Linux, Mac)
   os <- Sys.info()[1]
   username <- Sys.info()[6]
-  if (os == "Darwin" | os == "mac" | os == "Windows" | os == "Linux") {
+  if (os == "Darwin" | os == "mac" | os == "Windows") {
+    driverName <- "ODBC Driver 17 for SQL Server"
+  } else if(os == "Linux"){
     driverName <- "ODBC Driver 17 for SQL Server"
   }
   else {
     driverName <- "SQLServer"
   }
+
+  if(username == 'asrsadmin'){
+    # For virtual machine only.
+    driverName <- "ODBC Driver 17 for SQL Server"
+  }
+
   tryCatch(
     {
       connection <- DBI::dbConnect(odbc::odbc(),
@@ -142,6 +150,7 @@ INITIAL_DATABASE_POPULATION <- function(development = 0, local_azure_functions =
     "composite_book_of_record_monthly.csv",
     "account_book_of_record_daily.csv",
     "account_book_of_record_monthly.csv",
+    "account_futures.csv",
     "create_views"
   )
 
@@ -256,6 +265,11 @@ tbl_account_info_benchmark_info <- function(con = AZASRS_DATABASE_CONNECTION()) 
 #' @export
 tbl_account_info_pm_fund_info <- function(con = AZASRS_DATABASE_CONNECTION()) {
   dplyr::tbl(con, "account_info_pm_fund_info")
+}
+
+#' @export
+tbl_account_futures <- function(con = AZASRS_DATABASE_CONNECTION()) {
+  dplyr::tbl(con, "account_futures")
 }
 
 #' @export
