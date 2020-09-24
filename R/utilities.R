@@ -139,6 +139,7 @@ tibble_to_zoo_list <- function() {
 #' @description Quarters, Years, etc. need to be counted
 #' @param start_date is the first date
 #' @param end_date is the end date
+#' @export
 calc_time_delta <- function(.data, start_date, end_date) {
   # First calculate number of days
   .data %>%

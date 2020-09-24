@@ -117,7 +117,7 @@ build_grouped_pm_cash_flow <- function(...,
 
   cf_prep <- cf_daily %>%
     dplyr::filter(
-      effective_date > start_date,
+      effective_date >= start_date,
       effective_date <= end_date
     ) %>%
     dplyr::mutate(nav = 0)
@@ -281,7 +281,7 @@ filter_cf_between_dates <- function(.data, start_date, end_date, itd) {
   } else {
     .data %>%
       dplyr::filter(
-        effective_date > start_date,
+        effective_date >= start_date,
         effective_date <= end_date
       )
   }

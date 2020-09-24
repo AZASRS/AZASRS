@@ -6,5 +6,5 @@ test_that("get_account_futures returns expected results", {
   expect_equal(colnames(dat), expected_names)
   expect_equal(as.character(lapply(dat, class)), c("integer", "Date", "Date", "character", "character", "numeric", "numeric", "character"))
 
-  expect_true(dplyr::count(dat) %>% dplyr::pull(n) >= 4)
+  expect_true(dplyr::count(dat) %>% dplyr::pull(n) >= 1)
 })

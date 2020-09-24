@@ -3,6 +3,7 @@
 #' @description Finds all data from benchmark_info_id matched with pm_fund_info_id
 #' @param con is a database connection object from AZASRS::AZASRS_DATABASE_CONNECTION()
 #' @param bench_type is the type of benchmark. The default is 'PVT' which is private.
+#' @param get_all_benchmark_types is a boolean that determines whether or not all bench types are returned
 #' @param return_tibble is a boolean that determines whether or not a tibble is returned instead
 #' @return Returns a tibble or database object
 #' @examples

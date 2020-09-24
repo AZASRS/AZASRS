@@ -65,6 +65,7 @@ build_grouped_pm_metrics <- function(...,
 #' @description Calculates the major financial metrics
 #' @param .data is from build_grouped_pm_cash_flow()
 #' @param ... aggregation choices from from pm_fund_info (i.e. pm_fund_portfolio, pm_fund_category, pm_fund_id)
+#' @export
 calc_grouped_pm_metrics <- function(.data, ...) {
   .data %>%
     dplyr::group_by(...) %>%

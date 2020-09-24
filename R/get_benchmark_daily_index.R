@@ -21,7 +21,7 @@ get_benchmark_daily_index <- function(con = AZASRS_DATABASE_CONNECTION(),
                                       all_bench_types = FALSE,
                                       return_tibble = FALSE) {
   if (all_bench_types) {
-    pmfi_bmi <- get_benchmark_fund_relationship(con) %>%
+    pmfi_bmi <- get_benchmark_fund_relationship(con, get_all_benchmark_types = all_bench_types) %>%
       dplyr::distinct(benchmark_info_id)
   } else {
     pmfi_bmi <- get_benchmark_fund_relationship(con) %>%
